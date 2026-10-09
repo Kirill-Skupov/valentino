@@ -1,754 +1,580 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Особенная валентинка для тебя ❤️</title>
-  
-  <!-- Telegram Web App SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Canvas Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Для моего Котёнка ❤️</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+--bg-gradient: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+--card-bg: rgba(255, 255, 255, 0.95);
+--primary-color: #ff3366;
+--primary-hover: #e62254;
+--text-color: #2c3e50;
+}
 
-  <!-- Google Fonts: Inter & Caveat & Playfair Display -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+user-select: none;
+-webkit-user-select: none;
+-webkit-tap-highlight-color: transparent;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            handwriting: ['Caveat', 'cursive'],
-            serif: ['Playfair Display', 'serif']
-          },
-          colors: {
-            rose: {
-              50: '#fff1f2',
-              100: '#ffe4e6',
-              200: '#fecdd3',
-              400: '#fb7185',
-              500: '#f43f5e',
-              600: '#e11d48',
-              800: '#9f1239',
-              900: '#881337',
-            }
-          }
-        }
-      }
-    }
-  </script>
+body {
+background: var(--bg-gradient);
+min-height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+overflow-x: hidden;
+color: var(--text-color);
+position: relative;
+padding: 16px;
+}
 
-  <style>
-    body {
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      overflow-x: hidden;
-      background: radial-gradient(circle at 50% 20%, #ffe4e6 0%, #fecdd3 35%, #fda4af 70%, #f43f5e 100%);
-      min-height: 100vh;
-      min-height: 100dvh;
-    }
+.heart-bg {
+position: absolute;
+color: rgba(255, 255, 255, 0.4);
+font-size: 20px;
+animation: floatUp linear infinite;
+z-index: 1;
+pointer-events: none;
+}
 
-    /* Ambient floating hearts background */
-    #hearts-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
+@keyframes floatUp {
+0% { transform: translateY(105vh) scale(0.8) rotate(0deg); opacity: 0; }
+15% { opacity: 0.8; }
+85% { opacity: 0.8; }
+100% { transform: translateY(-10vh) scale(1.3) rotate(360deg); opacity: 0; }
+}
 
-    /* Envelope Styling */
-    .envelope-container {
-      perspective: 1200px;
-    }
+.sound-toggle {
+position: fixed;
+top: 16px;
+right: 16px;
+background: rgba(255, 255, 255, 0.7);
+backdrop-filter: blur(8px);
+border: none;
+border-radius: 50%;
+width: 42px;
+height: 42px;
+font-size: 20px;
+cursor: pointer;
+z-index: 100;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+transition: transform 0.2s;
+}
 
-    .envelope {
-      position: relative;
-      width: 310px;
-      height: 215px;
-      background-color: #e11d48;
-      border-radius: 12px;
-      box-shadow: 0 25px 45px -12px rgba(136, 19, 55, 0.45), 0 8px 16px -4px rgba(0,0,0,0.15);
-      cursor: pointer;
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
-    }
+.sound-toggle:active { transform: scale(0.9); }
 
-    .envelope:active {
-      transform: scale(0.98);
-    }
+.container {
+width: 100%;
+max-width: 420px;
+z-index: 10;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
 
-    /* Flaps of the envelope */
-    .envelope-pocket {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 0;
-      border-left: 155px solid #be123c;
-      border-right: 155px solid #be123c;
-      border-top: 100px solid transparent;
-      border-bottom: 115px solid #9f1239;
-      border-radius: 0 0 12px 12px;
-      z-index: 5;
-      pointer-events: none;
-    }
+/* Экран 1: Конверт */
+#envelope-screen {
+display: flex;
+flex-direction: column;
+align-items: center;
+cursor: pointer;
+text-align: center;
+animation: fadeIn 0.8s ease-out;
+}
 
-    .envelope-flap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 0;
-      height: 0;
-      border-left: 155px solid transparent;
-      border-right: 155px solid transparent;
-      border-top: 125px solid #f43f5e;
-      transform-origin: top center;
-      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 6;
-    }
+.envelope {
+position: relative;
+width: 250px;
+height: 170px;
+background: #f0718f;
+border-radius: 12px;
+box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+display: flex;
+justify-content: center;
+align-items: center;
+margin-bottom: 25px;
+transition: transform 0.3s;
+}
 
-    .envelope.open .envelope-flap {
-      transform: rotateX(180deg);
-      z-index: 2;
-    }
+.envelope:hover { transform: scale(1.03); }
 
-    /* Wax seal */
-    .wax-seal {
-      position: absolute;
-      top: 92px;
-      left: calc(50% - 28px);
-      width: 56px;
-      height: 56px;
-      background: radial-gradient(circle at 35% 35%, #ff4d6d, #9f1239);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.4);
-      z-index: 8;
-      cursor: pointer;
-      transition: transform 0.3s ease, opacity 0.5s ease;
-      animation: heartbeat 2.2s infinite ease-in-out;
-    }
+.envelope-front-flap {
+position: absolute;
+top: 0;
+left: 0;
+border-left: 125px solid transparent;
+border-right: 125px solid transparent;
+border-top: 95px solid #e05577;
+transform-origin: top;
+transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+z-index: 3;
+}
 
-    @keyframes heartbeat {
-      0%, 100% { transform: scale(1); }
-      14% { transform: scale(1.1); }
-      28% { transform: scale(1); }
-      42% { transform: scale(1.15); }
-      70% { transform: scale(1); }
-    }
+.envelope.open .envelope-front-flap {
+transform: rotateX(180deg);
+}
 
-    /* Card flip styling */
-    .flip-card {
-      perspective: 800px;
-    }
-    .flip-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      text-align: center;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      transform-style: preserve-3d;
-      cursor: pointer;
-    }
-    .flip-card.flipped .flip-inner {
-      transform: rotateY(180deg);
-    }
-    .flip-front, .flip-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-      border-radius: 1rem;
-    }
-    .flip-back {
-      transform: rotateY(180deg);
-    }
+.envelope-pocket {
+position: absolute;
+bottom: 0;
+left: 0;
+border-left: 125px solid #ea5d80;
+border-right: 125px solid #ea5d80;
+border-bottom: 90px solid #de4e73;
+border-top: 80px solid transparent;
+border-radius: 0 0 12px 12px;
+z-index: 4;
+}
 
-    /* Soft pulse animations */
-    .pulse-glow {
-      box-shadow: 0 0 20px 4px rgba(244, 63, 94, 0.5);
-    }
-  </style>
+.wax-seal {
+position: absolute;
+top: 75px;
+width: 52px;
+height: 52px;
+background: #c02942;
+border-radius: 50%;
+z-index: 5;
+display: flex;
+justify-content: center;
+align-items: center;
+color: white;
+font-size: 24px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.1); }
+}
+
+.tap-hint {
+color: white;
+font-size: 1.15rem;
+font-weight: 600;
+text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Экран 2: Вопрос */
+#question-screen {
+display: none;
+background: var(--card-bg);
+border-radius: 24px;
+padding: 30px 24px;
+width: 100%;
+text-align: center;
+box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.badge {
+display: inline-block;
+background: #ffe6ed;
+color: var(--primary-color);
+padding: 6px 14px;
+border-radius: 20px;
+font-size: 0.9rem;
+font-weight: 700;
+margin-bottom: 14px;
+}
+
+.question-title {
+font-size: 1.45rem;
+margin-bottom: 12px;
+line-height: 1.35;
+color: #333;
+}
+
+.sub-text {
+font-size: 0.95rem;
+color: #666;
+margin-bottom: 28px;
+}
+
+.btn-container {
+position: relative;
+height: 130px;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.btn {
+padding: 14px 28px;
+font-size: 1.1rem;
+font-weight: 700;
+border-radius: 30px;
+border: none;
+cursor: pointer;
+box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-yes {
+background: var(--primary-color);
+color: white;
+z-index: 10;
+}
+
+.btn-yes:active { transform: scale(0.96); }
+
+.btn-no {
+background: #eceff1;
+color: #78909c;
+position: absolute;
+z-index: 5;
+}
+
+/* Экран 3: Финал */
+#final-screen {
+display: none;
+background: var(--card-bg);
+border-radius: 24px;
+padding: 30px 20px;
+width: 100%;
+text-align: center;
+box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+animation: popIn 0.5s ease-out;
+}
+
+.final-title {
+color: var(--primary-color);
+font-size: 1.7rem;
+margin-bottom: 12px;
+}
+
+.love-letter {
+background: #fff5f7;
+border-left: 4px solid var(--primary-color);
+padding: 14px;
+border-radius: 8px;
+text-align: left;
+font-size: 0.95rem;
+line-height: 1.5;
+color: #444;
+margin-bottom: 22px;
+}
+
+.coupons-title {
+font-size: 1.05rem;
+font-weight: 700;
+margin-bottom: 12px;
+color: #444;
+}
+
+.coupons-grid {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.coupon-card {
+background: white;
+border: 2px dashed #ff99b0;
+border-radius: 14px;
+padding: 14px;
+cursor: pointer;
+transition: transform 0.2s, background 0.2s;
+text-align: center;
+}
+
+.coupon-card:active {
+transform: scale(0.98);
+background: #fff8f9;
+}
+
+.coupon-card.used {
+border: 2px solid #4caf50;
+background: #f1f8e9;
+}
+
+.coupon-name {
+font-weight: bold;
+color: #333;
+font-size: 1rem;
+}
+
+.coupon-desc {
+font-size: 0.85rem;
+color: #777;
+margin-top: 4px;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn {
+0% { transform: scale(0.85); opacity: 0; }
+100% { transform: scale(1); opacity: 1; }
+}
+
+canvas#confetti-canvas {
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+pointer-events: none;
+z-index: 999;
+}
+</style>
 </head>
-<body class="text-rose-900 font-sans flex flex-col justify-between p-4 sm:p-6 min-h-screen relative overflow-hidden">
-
-  <!-- Background floating particles canvas -->
-  <canvas id="hearts-canvas"></canvas>
-
-  <header class="w-full max-w-md mx-auto flex items-center justify-between z-20 pt-2">
-    <div class="flex items-center space-x-2 bg-white/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/60 shadow-sm text-xs font-medium text-rose-700">
-      <span class="inline-block w-2 h-2 rounded-full bg-rose-500 animate-ping mr-0.5"></span>
-      <span>Для самой лучшей девушки ❤️</span>
-    </div>
-
-    <!-- Music toggle button -->
-    <button id="sound-btn" class="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border border-white/80 shadow-md text-rose-600 hover:scale-105 active:scale-95 transition-transform" title="Музыка">
-      <svg id="sound-icon-on" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-      </svg>
-      <svg id="sound-icon-off" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-      </svg>
-    </button>
-  </header>
-
-  <main class="w-full max-w-md mx-auto flex-1 flex flex-col items-center justify-center z-10 py-6 relative">
-    
-    <!-- STEP 1: Interactive Envelope -->
-    <section id="step-envelope" class="w-full flex flex-col items-center justify-center transition-all duration-700">
-      <div class="text-center mb-8">
-        <h1 class="text-2xl sm:text-3xl font-serif font-bold text-rose-950 mb-2 drop-shadow-sm">Тебе пришло письмо 💌</h1>
-        <p class="text-rose-800/80 text-sm font-medium">Нажми на сердечко или конверт, чтобы открыть его</p>
-      </div>
-
-      <div class="envelope-container mb-8">
-        <div id="envelope-elem" class="envelope">
-          <div class="envelope-flap"></div>
-          <div class="envelope-pocket"></div>
-          
-          <!-- Wax seal with heart -->
-          <div id="wax-seal-btn" class="wax-seal">
-            <svg class="w-6 h-6 text-white drop-shadow" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <button id="open-envelope-btn" class="px-6 py-3 bg-white/90 hover:bg-white text-rose-600 rounded-full font-semibold shadow-lg hover:shadow-xl transform active:scale-95 transition-all text-sm border border-rose-200 flex items-center space-x-2">
-        <span>Открыть послание ✨</span>
-      </button>
-    </section>
-
-    <section id="step-letter" class="w-full hidden flex-col items-center justify-center opacity-0 scale-95 transition-all duration-700">
-      <div class="w-full bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-rose-100 relative overflow-hidden">
-        
-        <!-- Romantic paper texture and corner decorations -->
-        <div class="absolute -top-12 -right-12 w-28 h-28 bg-rose-200/50 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-300/40 rounded-full blur-xl pointer-events-none"></div>
-
-        <div class="flex items-center justify-between border-b border-rose-100 pb-3 mb-4">
-          <span class="text-xs uppercase tracking-widest text-rose-400 font-semibold">14 Февраля</span>
-          <span class="text-lg">💖</span>
-        </div>
-
-        <!-- Customizable sweet message -->
-        <div class="space-y-3 text-rose-900 font-handwriting text-2xl sm:text-3xl leading-relaxed">
-          <p>Привет, моё солнышко! ✨</p>
-          <p class="font-sans text-sm sm:text-base text-rose-800 leading-normal font-normal">
-            Каждый день рядом с тобой наполнен теплом, улыбками и вдохновением. Я безумно ценю каждый наш момент, каждую шутку и каждый взгляд.
-          </p>
-          <p class="font-serif italic font-semibold text-rose-900 text-lg sm:text-xl text-center py-2">
-            «Ты будешь моей валентинкой?»
-          </p>
-        </div>
-
-        <!-- Buttons Container with dynamic escaping 'No' button -->
-        <div id="interactive-area" class="relative mt-6 pt-4 min-h-[140px] flex flex-col items-center justify-center">
-          <div class="flex items-center justify-center gap-4 w-full relative">
-            
-            <!-- YES Button: Expands when NO is dodged -->
-            <button id="btn-yes" class="z-20 px-7 py-3.5 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-600 text-white font-bold rounded-full shadow-xl hover:shadow-rose-400/50 active:scale-95 transition-all duration-300 flex items-center justify-center space-x-2 pulse-glow">
-              <span id="btn-yes-text" class="text-base sm:text-lg">Да, конечно! 🥰</span>
-            </button>
-
-            <!-- NO Button: Escapes cursor and touch -->
-            <button id="btn-no" class="z-10 px-5 py-3 bg-white text-rose-600 border border-rose-300 font-medium rounded-full shadow-md active:scale-90 transition-all duration-200 text-sm whitespace-nowrap">
-              <span id="btn-no-text">Нет 🙈</span>
-            </button>
-
-          </div>
-          
-          <p id="fun-hint" class="text-xs text-rose-400 mt-4 text-center h-4 font-medium transition-opacity opacity-0">
-            Кажется, кнопка «Нет» не согласна! 😉
-          </p>
-        </div>
-
-      </div>
-    </section>
-
-    <section id="step-celebration" class="w-full hidden flex-col items-center justify-center opacity-0 scale-95 transition-all duration-700">
-      <div class="w-full bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-rose-100 text-center">
-        
-        <div class="inline-flex p-3 bg-rose-100 rounded-full mb-3 animate-bounce">
-          <span class="text-3xl">🎉</span>
-        </div>
-
-        <h2 class="text-2xl sm:text-3xl font-serif font-bold text-rose-950 mb-2">
-          Урааа! Я самый счастливый! ❤️
-        </h2>
-        
-        <p class="text-rose-700 text-sm mb-6 leading-relaxed">
-          Этот день теперь официально наш! Я приготовил для тебя несколько маленьких купонов любви. Нажимай на карточки, чтобы открыть их:
-        </p>
-
-        <!-- Interactive Flip Cards / Love Coupons -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 w-full text-left">
-          
-          <!-- Card 1 -->
-          <div class="flip-card h-28 w-full" onclick="flipCard(this)">
-            <div class="flip-inner">
-              <div class="flip-front bg-rose-50 border border-rose-200 p-3 flex flex-col items-center justify-center shadow-sm">
-                <span class="text-2xl mb-1">☕️</span>
-                <span class="text-xs font-semibold text-rose-700">Купон №1</span>
-                <span class="text-[11px] text-rose-400">Нажми, чтобы открыть</span>
-              </div>
-              <div class="flip-back bg-gradient-to-br from-rose-500 to-pink-600 text-white p-3 flex flex-col items-center justify-center shadow-md">
-                <span class="text-xs font-bold uppercase tracking-wider mb-1">Кофе и десерт</span>
-                <span class="text-[12px] leading-tight text-rose-100 text-center">Уютный поход в твою любимую кофейню в любое время ✨</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="flip-card h-28 w-full" onclick="flipCard(this)">
-            <div class="flip-inner">
-              <div class="flip-front bg-rose-50 border border-rose-200 p-3 flex flex-col items-center justify-center shadow-sm">
-                <span class="text-2xl mb-1">🤗</span>
-                <span class="text-xs font-semibold text-rose-700">Купон №2</span>
-                <span class="text-[11px] text-rose-400">Нажми, чтобы открыть</span>
-              </div>
-              <div class="flip-back bg-gradient-to-br from-pink-500 to-rose-600 text-white p-3 flex flex-col items-center justify-center shadow-md">
-                <span class="text-xs font-bold uppercase tracking-wider mb-1">100 Обнимашек</span>
-                <span class="text-[12px] leading-tight text-rose-100 text-center">Действует без ограничений и срока годности! 💕</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="flip-card h-28 w-full" onclick="flipCard(this)">
-            <div class="flip-inner">
-              <div class="flip-front bg-rose-50 border border-rose-200 p-3 flex flex-col items-center justify-center shadow-sm">
-                <span class="text-2xl mb-1">🎬</span>
-                <span class="text-xs font-semibold text-rose-700">Купон №3</span>
-                <span class="text-[11px] text-rose-400">Нажми, чтобы открыть</span>
-              </div>
-              <div class="flip-back bg-gradient-to-br from-rose-600 to-purple-600 text-white p-3 flex flex-col items-center justify-center shadow-md">
-                <span class="text-xs font-bold uppercase tracking-wider mb-1">Киновечер</span>
-                <span class="text-[12px] leading-tight text-rose-100 text-center">Выбираешь любой фильм и любые вкусняшки 🍿</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
-          <button id="send-tg-btn" class="w-full sm:w-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-full font-semibold shadow-md active:scale-95 transition-all text-sm flex items-center justify-center space-x-2">
-            <span>Отправить ответ в чат 💌</span>
-          </button>
-          <button id="repeat-confetti-btn" class="w-full sm:w-auto px-5 py-3 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-full font-medium active:scale-95 transition-all text-sm">
-            Запустить салют еще раз ✨
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="text-center text-xs text-rose-800/60 py-2 z-20">
-    С любовью и нежностью специально для тебя • 2026
-  </footer>
-
-  <script>
-    // Initialize Telegram WebApp SDK
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      try {
-        tg.ready();
-        tg.expand();
-        // Match theme background if available
-        if (tg.setHeaderColor) {
-          tg.setHeaderColor('#ffe4e6');
-        }
-      } catch (e) {
-        console.warn("Telegram WebApp initialization notice:", e);
-      }
-    }
-
-    // Haptic feedback helper
-    function triggerHaptic(type = 'light') {
-      try {
-        if (tg && tg.HapticFeedback) {
-          if (type === 'success') {
-            tg.HapticFeedback.notificationOccurred('success');
-          } else if (type === 'heavy') {
-            tg.HapticFeedback.impactOccurred('heavy');
-          } else if (type === 'medium') {
-            tg.HapticFeedback.impactOccurred('medium');
-          } else {
-            tg.HapticFeedback.impactOccurred('light');
-          }
-        }
-      } catch (e) {
-        // Fallback or ignore in browser preview
-      }
-    }
-
-    // Web Audio API Gentle Synthesizer (Music & Melody without external mp3 files)
-    let audioCtx = null;
-    let isPlayingMusic = false;
-    let musicInterval = null;
-
-    const soundBtn = document.getElementById('sound-btn');
-    const soundIconOn = document.getElementById('sound-icon-on');
-    const soundIconOff = document.getElementById('sound-icon-off');
-
-    function initAudioContext() {
-      if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioCtx = new AudioContextClass();
-        }
-      }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
-
-    // Play a delicate soft chime note
-    function playChime(freq, time = 0, duration = 0.8, gainLevel = 0.08) {
-      if (!audioCtx) return;
-      try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
-
-        gain.gain.setValueAtTime(0.001, audioCtx.currentTime + time);
-        gain.gain.exponentialRampToValueAtTime(gainLevel, audioCtx.currentTime + time + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + time + duration);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start(audioCtx.currentTime + time);
-        osc.stop(audioCtx.currentTime + time + duration);
-      } catch (err) {}
-    }
-
-    // Romantic music arpeggio loop (Pentatonic sweet melody)
-    const romanticMelody = [
-      523.25, // C5
-      659.25, // E5
-      783.99, // G5
-      987.77, // B5
-      880.00, // A5
-      659.25, // E5
-      783.99, // G5
-      587.33  // D5
-    ];
-
-    let noteIndex = 0;
-    function playMelodyStep() {
-      if (!isPlayingMusic || !audioCtx) return;
-      const freq = romanticMelody[noteIndex % romanticMelody.length];
-      playChime(freq, 0, 1.2, 0.05);
-      noteIndex++;
-    }
-
-    function toggleSound() {
-      initAudioContext();
-      isPlayingMusic = !isPlayingMusic;
-
-      if (isPlayingMusic) {
-        soundIconOn.classList.remove('hidden');
-        soundIconOff.classList.add('hidden');
-        // Play welcome chord
-        playChime(523.25, 0, 0.8, 0.08);
-        playChime(659.25, 0.15, 0.8, 0.08);
-        playChime(783.99, 0.3, 1.2, 0.08);
-        musicInterval = setInterval(playMelodyStep, 600);
-      } else {
-        soundIconOn.classList.add('hidden');
-        soundIconOff.classList.remove('hidden');
-        if (musicInterval) clearInterval(musicInterval);
-      }
-      triggerHaptic('light');
-    }
-
-    soundBtn.addEventListener('click', toggleSound);
-
-    const canvas = document.getElementById('hearts-canvas');
-    const ctx = canvas.getContext('2d');
-    let hearts = [];
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    class FloatingHeart {
-      constructor() {
-        this.reset(true);
-      }
-      reset(initial = false) {
-        this.x = Math.random() * canvas.width;
-        this.y = initial ? Math.random() * canvas.height : canvas.height + 20;
-        this.size = Math.random() * 14 + 10;
-        this.speedY = Math.random() * 0.8 + 0.4;
-        this.speedX = (Math.random() - 0.5) * 0.5;
-        this.opacity = Math.random() * 0.4 + 0.15;
-        this.color = Math.random() > 0.4 ? '#fb7185' : '#fda4af';
-      }
-      update() {
-        this.y -= this.speedY;
-        this.x += this.speedX;
-        if (this.y < -20) {
-          this.reset(false);
-        }
-      }
-      draw() {
-        ctx.save();
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = this.opacity;
-        ctx.beginPath();
-        const topCurveHeight = this.size * 0.3;
-        ctx.moveTo(this.x, this.y + topCurveHeight);
-        // top left curve
-        ctx.bezierCurveTo(
-          this.x, this.y, 
-          this.x - this.size / 2, this.y, 
-          this.x - this.size / 2, this.y + topCurveHeight
-        );
-        // bottom left curve
-        ctx.bezierCurveTo(
-          this.x - this.size / 2, this.y + (this.size + topCurveHeight) / 2, 
-          this.x, this.y + (this.size + topCurveHeight) / 1.4, 
-          this.x, this.y + this.size
-        );
-        // bottom right curve
-        ctx.bezierCurveTo(
-          this.x, this.y + (this.size + topCurveHeight) / 1.4, 
-          this.x + this.size / 2, this.y + (this.size + topCurveHeight) / 2, 
-          this.x + this.size / 2, this.y + topCurveHeight
-        );
-        // top right curve
-        ctx.bezierCurveTo(
-          this.x + this.size / 2, this.y, 
-          this.x, this.y, 
-          this.x, this.y + topCurveHeight
-        );
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-
-    // Populate hearts pool
-    for (let i = 0; i < 28; i++) {
-      hearts.push(new FloatingHeart());
-    }
-
-    function animateHearts() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < hearts.length; i++) {
-        hearts[i].update();
-        hearts[i].draw();
-      }
-      requestAnimationFrame(animateHearts);
-    }
-    animateHearts();
-
-    const stepEnvelope = document.getElementById('step-envelope');
-    const stepLetter = document.getElementById('step-letter');
-    const stepCelebration = document.getElementById('step-celebration');
-    const envelopeElem = document.getElementById('envelope-elem');
-    const waxSealBtn = document.getElementById('wax-seal-btn');
-    const openEnvelopeBtn = document.getElementById('open-envelope-btn');
-
-    function openEnvelope() {
-      initAudioContext();
-      if (!isPlayingMusic) toggleSound();
-      
-      triggerHaptic('medium');
-      envelopeElem.classList.add('open');
-      waxSealBtn.style.opacity = '0';
-      waxSealBtn.style.transform = 'scale(0.2)';
-
-      // Trigger burst confetti from center
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#f43f5e', '#fda4af', '#ffffff', '#e11d48']
-      });
-
-      // Smooth switch to the Letter
-      setTimeout(() => {
-        stepEnvelope.classList.add('opacity-0', 'scale-90');
-        setTimeout(() => {
-          stepEnvelope.classList.add('hidden');
-          stepLetter.classList.remove('hidden');
-          
-          // Force layout reflow then transition in
-          void stepLetter.offsetWidth;
-          stepLetter.classList.remove('opacity-0', 'scale-95');
-          stepLetter.classList.add('opacity-100', 'scale-100');
-        }, 400);
-      }, 700);
-    }
-
-    envelopeElem.addEventListener('click', openEnvelope);
-    openEnvelopeBtn.addEventListener('click', openEnvelope);
-
-    const btnYes = document.getElementById('btn-yes');
-    const btnYesText = document.getElementById('btn-yes-text');
-    const btnNo = document.getElementById('btn-no');
-    const btnNoText = document.getElementById('btn-no-text');
-    const funHint = document.getElementById('fun-hint');
-
-    let dodgeCount = 0;
-    let yesScale = 1;
-
-    const wittyPhrases = [
-      'Нет 🙈',
-      'Эй! Не туда 😉',
-      'Ты уверена? 🥺',
-      'Попробуй еще раз!',
-      'Кнопка сломалась 🤭',
-      'Без шансов ❤️',
-      'Только «Да»!'
-    ];
-
-    function dodgeNoButton(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      
-      dodgeCount++;
-      triggerHaptic('medium');
-
-      // Change phrase
-      const phrase = wittyPhrases[dodgeCount % wittyPhrases.length];
-      btnNoText.innerText = phrase;
-      funHint.style.opacity = '1';
-
-      // Move No button randomly within boundaries
-      btnNo.style.position = 'absolute';
-      const maxX = 120;
-      const maxY = 65;
-      const randomX = (Math.random() - 0.5) * (maxX * 2);
-      const randomY = (Math.random() - 0.5) * (maxY * 2);
-
-      btnNo.style.transform = `translate(${randomX}px, ${randomY}px) scale(0.9)`;
-
-      // Grow YES button
-      yesScale = Math.min(yesScale + 0.12, 1.6);
-      btnYes.style.transform = `scale(${yesScale})`;
-      
-      if (dodgeCount >= 3) {
-        btnYesText.innerText = 'ДА! ДА! ДА! 🥰';
-      }
-    }
-
-    // Support both mouse hover and mobile touch taps
-    btnNo.addEventListener('mouseenter', dodgeNoButton);
-    btnNo.addEventListener('touchstart', dodgeNoButton, { passive: false });
-    btnNo.addEventListener('click', dodgeNoButton);
-
-    btnYes.addEventListener('click', () => {
-      triggerHaptic('success');
-      initAudioContext();
-
-      // Play joyful harmonic chimes
-      playChime(523.25, 0.0, 0.6, 0.1);
-      playChime(659.25, 0.1, 0.6, 0.1);
-      playChime(783.99, 0.2, 0.6, 0.1);
-      playChime(1046.50, 0.3, 1.2, 0.12);
-
-      // Grand confetti explosion
-      const duration = 2.5 * 1000;
-      const end = Date.now() + duration;
-
-      (function frame() {
-        confetti({
-          particleCount: 5,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: ['#f43f5e', '#ec4899', '#ffffff', '#fb7185']
-        });
-        confetti({
-          particleCount: 5,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: ['#f43f5e', '#ec4899', '#ffffff', '#fb7185']
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      }());
-
-      // Switch to celebration step
-      stepLetter.classList.add('opacity-0', 'scale-90');
-      setTimeout(() => {
-        stepLetter.classList.add('hidden');
-        stepCelebration.classList.remove('hidden');
-
-        void stepCelebration.offsetWidth;
-        stepCelebration.classList.remove('opacity-0', 'scale-95');
-        stepCelebration.classList.add('opacity-100', 'scale-100');
-      }, 400);
-    });
-
-    // Flip love coupons
-    window.flipCard = function(el) {
-      triggerHaptic('light');
-      el.classList.toggle('flipped');
-      playChime(880, 0, 0.3, 0.04);
-    };
-
-    // Repeat confetti button
-    document.getElementById('repeat-confetti-btn').addEventListener('click', () => {
-      triggerHaptic('medium');
-      confetti({
-        particleCount: 90,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#e11d48', '#fb7185', '#fda4af', '#f43f5e', '#ffffff']
-      });
-    });
-
-    // Send answer back to Telegram Chat
-    document.getElementById('send-tg-btn').addEventListener('click', () => {
-      triggerHaptic('success');
-      if (tg) {
-        try {
-          // If Telegram WebApp is opened inside a bot with sendData support:
-          tg.sendData(JSON.stringify({
-            status: "accepted",
-            message: "Я сказала ДА! Буду твоей валентинкой! ❤️🥰"
-          }));
-        } catch (e) {
-          // Fallback if opened via direct browser link or inline button
-          window.location.href = "tg://msg?text=" + encodeURIComponent("Я сказала ДА! Буду твоей валентинкой! ❤️🥰✨");
-        }
-      } else {
-        window.location.href = "tg://msg?text=" + encodeURIComponent("Я сказала ДА! Буду твоей валентинкой! ❤️🥰✨");
-      }
-    });
-  </script>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<button class="sound-toggle" id="soundBtn" title="Включить музыку">🎵</button>
+
+<div class="container">
+<!-- ЭКРАН 1: КОНВЕРТ -->
+<div id="envelope-screen" onclick="openEnvelope()">
+<div class="envelope" id="envelope">
+<div class="envelope-front-flap"></div>
+<div class="wax-seal">💌</div>
+<div class="envelope-pocket"></div>
+</div>
+<div class="tap-hint">Котёнок, нажми на конверт ✨</div>
+</div>
+
+<!-- ЭКРАН 2: ВОПРОС -->
+<div id="question-screen">
+<div class="badge">❤️ 2,5 года вместе (913 дней)</div>
+<h2 class="question-title">Котёнок, будешь любить меня ещё как минимум 100 лет?</h2>
+<p class="sub-text">Подумай хорошенько, прежде чем ответить 😉</p>
+
+<div class="btn-container" id="btnContainer">
+<button class="btn btn-yes" id="yesBtn" onclick="handleYes()">Да! Конечно ❤️</button>
+<button class="btn btn-no" id="noBtn" onmouseover="dodgeNo()" onclick="dodgeNo()">Нет 🙃</button>
+</div>
+</div>
+
+<!-- ЭКРАН 3: ФИНАЛ -->
+<div id="final-screen">
+<h2 class="final-title">Ура-а-а! Я так тебя люблю! 🎉</h2>
+
+<div class="love-letter">
+<b>Мой любимый Котёнок!</b><br>
+Уже целых 2,5 года мы рядом, и каждый этот день — самое лучшее, что со мной случалось. Спасибо тебе за твою нежность, поддержку, улыбки и наше тепло.<br><br>
+В честь нашей даты у меня для тебя два вечных купона (нажми, чтобы активировать):
+</div>
+
+<div class="coupons-title">Твои праздничные купоны 🎁</div>
+<div class="coupons-grid">
+<div class="coupon-card" onclick="activateCoupon(this, 'Сет роллов')">
+<div class="coupon-name">🍣 Сет твоих любимых роллов</div>
+<div class="coupon-desc">Нажми, чтобы активировать романтический ужин</div>
+</div>
+<div class="coupon-card" onclick="activateCoupon(this, 'Обнимашки')">
+<div class="coupon-name">🫂 Обнимашки без лимита</div>
+<div class="coupon-desc">Действует бесконечно в любой момент времени</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// Инициализация Telegram WebApp
+const tg = window.Telegram?.WebApp;
+if (tg) {
+tg.expand();
+tg.ready();
+}
+
+function triggerHaptic(type = 'light') {
+if (tg && tg.HapticFeedback) {
+if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+else tg.HapticFeedback.impactOccurred(type);
+}
+}
+
+// Фоновые сердечки
+function createFloatingHearts() {
+const symbols = ['❤️', '💖', '✨', '🐾', '💕'];
+for (let i = 0; i < 16; i++) {
+const heart = document.createElement('div');
+heart.className = 'heart-bg';
+heart.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+heart.style.left = Math.random() * 95 + 'vw';
+heart.style.animationDuration = (5 + Math.random() * 5) + 's';
+heart.style.animationDelay = (Math.random() * 5) + 's';
+document.body.appendChild(heart);
+}
+}
+createFloatingHearts();
+
+// Нежная мелодия (Web Audio API)
+let audioCtx = null;
+let isPlaying = false;
+let melodyTimer = null;
+
+function playNote(freq, start, duration) {
+const osc = audioCtx.createOscillator();
+const gain = audioCtx.createGain();
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(freq, start);
+gain.gain.setValueAtTime(0, start);
+gain.gain.linearRampToValueAtTime(0.12, start + 0.05);
+gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+osc.start(start);
+osc.stop(start + duration);
+}
+
+function startMusic() {
+if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+if (audioCtx.state === 'suspended') audioCtx.resume();
+
+const notes = [
+261.63, 329.63, 392.00, 523.25,
+293.66, 349.23, 440.00, 587.33,
+246.94, 329.63, 392.00, 493.88
+];
+
+function loop() {
+const now = audioCtx.currentTime;
+notes.forEach((freq, idx) => {
+playNote(freq, now + idx * 0.45, 0.8);
+});
+melodyTimer = setTimeout(loop, notes.length * 450);
+}
+
+loop();
+isPlaying = true;
+document.getElementById('soundBtn').innerText = '🔊';
+}
+
+function stopMusic() {
+if (melodyTimer) clearTimeout(melodyTimer);
+isPlaying = false;
+document.getElementById('soundBtn').innerText = '🔈';
+}
+
+document.getElementById('soundBtn').addEventListener('click', () => {
+triggerHaptic('light');
+if (!isPlaying) startMusic();
+else stopMusic();
+});
+
+// Экран 1 -> Экран 2
+function openEnvelope() {
+triggerHaptic('medium');
+if (!isPlaying) startMusic();
+
+const env = document.getElementById('envelope');
+env.classList.add('open');
+
+setTimeout(() => {
+document.getElementById('envelope-screen').style.display = 'none';
+document.getElementById('question-screen').style.display = 'block';
+resetNoButton();
+}, 700);
+}
+
+// Убегающая кнопка "Нет"
+let noDodges = 0;
+const noPhrases = ['Ой! Мимо 🙈', 'Попробуй еще раз 😉', 'Не-а!', 'Без шансов, Котёнок!', 'Только «Да» ❤️'];
+
+function resetNoButton() {
+const noBtn = document.getElementById('noBtn');
+noBtn.style.transform = 'translateX(75px)';
+}
+
+function dodgeNo() {
+triggerHaptic('selection');
+const noBtn = document.getElementById('noBtn');
+const yesBtn = document.getElementById('yesBtn');
+const container = document.getElementById('btnContainer');
+
+noDodges++;
+noBtn.innerText = noPhrases[Math.min(noDodges - 1, noPhrases.length - 1)];
+
+const rect = container.getBoundingClientRect();
+const maxX = (rect.width / 2) - 50;
+const maxY = (rect.height / 2) - 25;
+
+const randomX = (Math.random() - 0.5) * 2 * maxX;
+const randomY = (Math.random() - 0.5) * 2 * maxY;
+
+noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+
+// Кнопка "Да" становится больше
+const currentScale = 1 + (noDodges * 0.12);
+yesBtn.style.transform = `scale(${Math.min(currentScale, 1.6)})`;
+}
+
+// Экран 2 -> Экран 3
+function handleYes() {
+triggerHaptic('success');
+document.getElementById('question-screen').style.display = 'none';
+document.getElementById('final-screen').style.display = 'block';
+fireConfetti();
+}
+
+// Купоны
+function activateCoupon(card, name) {
+triggerHaptic('medium');
+if (!card.classList.contains('used')) {
+card.classList.add('used');
+card.querySelector('.coupon-desc').innerHTML = '✅ <b>Активировано! Предъяви Кириллу в любое время</b>';
+fireConfetti(35);
+}
+}
+
+// Салют конфетти
+const canvas = document.getElementById('confetti-canvas');
+const ctx = canvas.getContext('2d');
+let confettiList = [];
+
+function resizeCanvas() {
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function fireConfetti(count = 80) {
+const colors = ['#ff3366', '#ff758c', '#ffd166', '#06d6a0', '#118ab2'];
+for (let i = 0; i < count; i++) {
+confettiList.push({
+x: canvas.width / 2,
+y: canvas.height / 2,
+r: Math.random() * 6 + 4,
+dx: (Math.random() - 0.5) * 14,
+dy: (Math.random() - 0.5) * 14 - 3,
+color: colors[Math.floor(Math.random() * colors.length)],
+tilt: Math.random() * 10,
+tiltSpeed: Math.random() * 0.1 + 0.05
+});
+}
+}
+
+function renderConfetti() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+confettiList.forEach((c, idx) => {
+c.x += c.dx;
+c.y += c.dy;
+c.dy += 0.25; // гравитация
+c.tilt += c.tiltSpeed;
+
+ctx.beginPath();
+ctx.fillStyle = c.color;
+ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+ctx.fill();
+
+if (c.y > canvas.height + 20) confettiList.splice(idx, 1);
+});
+requestAnimationFrame(renderConfetti);
+}
+renderConfetti();
+</script>
 </body>
 </html>
